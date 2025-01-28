@@ -64,7 +64,8 @@ def calculate_strategy_metrics(portfolio_df, trades_df, period_start, period_end
 
 def save_results_to_file(results_dict, symbol, output_dir, combined_results, optimization_results=None, train_end=None):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    symbol_dir = os.path.join(output_dir, symbol.replace('/', '_'))
+    safe_symbol = symbol.replace('/', '_').replace('\\', '_')
+    symbol_dir = os.path.join(output_dir, safe_symbol)
     ensure_directory(symbol_dir)
     
     summary_file = os.path.join(symbol_dir, f'summary_{timestamp}.txt')
@@ -180,8 +181,9 @@ def save_test_period_results(results_dict, symbol, output_dir, train_end):
         train_end (str): End date of training period
     """
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    symbol_dir = os.path.join(output_dir, symbol.replace('/', '_'))
-    os.makedirs(symbol_dir, exist_ok=True)
+    safe_symbol = symbol.replace('/', '_').replace('\\', '_')
+    symbol_dir = os.path.join(output_dir, safe_symbol)
+    ensure_directory(symbol_dir)
     
     test_results_file = os.path.join(symbol_dir, f'test_period_results_{timestamp}.txt')
     
@@ -263,7 +265,11 @@ def save_test_period_results(results_dict, symbol, output_dir, train_end):
     return test_results_file
 def analyze_strategy_correlations(results_dict, df, symbol, output_dir):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    symbol_dir = os.path.join(output_dir, symbol.replace('/', '_'))
+    safe_symbol = symbol.replace('/', '_').replace('\\', '_')
+    symbol_dir = os.path.join(output_dir, safe_symbol)
+    ensure_directory(symbol_dir)
+    
+    # Define analysis_file path before using it
     analysis_file = os.path.join(symbol_dir, f'correlation_analysis_{timestamp}.txt')
     
     # Calculate daily returns for each strategy
@@ -417,7 +423,8 @@ def plot_results(results_dict, symbol, output_dir):
     
     # Save plot
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    symbol_dir = os.path.join(output_dir, symbol.replace('/', '_'))
+    safe_symbol = symbol.replace('/', '_').replace('\\', '_')
+    symbol_dir = os.path.join(output_dir, safe_symbol)
     ensure_directory(symbol_dir)
     plot_file = os.path.join(symbol_dir, f'performance_plot_{timestamp}.png')
     plt.savefig(plot_file, dpi=300, bbox_inches='tight')
@@ -477,15 +484,14 @@ def main():
             print(f"Loaded {len(data)} records")
             print("Initial columns:", data.columns.tolist())
             
-            # Split data into training and testing periods
-            total_days = (pd.to_datetime(BACKTEST_CONFIG['end_date']) - 
-                         pd.to_datetime(BACKTEST_CONFIG['start_date'])).days
-            training_days = int(total_days * BACKTEST_CONFIG['optimization']['train_test_split'])
-            train_end = (pd.to_datetime(BACKTEST_CONFIG['start_date']) + 
-                        pd.Timedelta(days=training_days)).strftime('%Y-%m-%d')
+            # Get training and testing dates from config
+            train_start = BACKTEST_CONFIG['optimization']['training_start']
+            train_end = BACKTEST_CONFIG['optimization']['training_end']
+            test_start = BACKTEST_CONFIG['optimization']['testing_start']
+            test_end = BACKTEST_CONFIG['optimization']['testing_end']
             
-            print(f"\nTraining period: {BACKTEST_CONFIG['start_date']} to {train_end}")
-            print(f"Testing period: {train_end} to {BACKTEST_CONFIG['end_date']}")
+            print(f"\nTraining period: {train_start} to {train_end}")
+            print(f"Testing period: {test_start} to {test_end}")
             
             # Add technical indicators for optimization
             print("\nCalculating technical indicators...")
@@ -497,7 +503,7 @@ def main():
             optimization_results[symbol] = TradingStrategies.optimize_strategy_parameters(
                 data_with_indicators,
                 symbol,
-                BACKTEST_CONFIG['start_date'],
+                train_start,
                 train_end
             )
             
@@ -509,12 +515,20 @@ def main():
             base_strategies = TradingStrategies.get_all_strategies()
             
             # Remove the original adaptive and optimized strategies if they exist
+                        # Remove the original adaptive and optimized strategies if they exist
             base_strategies.pop('Adaptive', None)
             base_strategies.pop('Optimized', None)
             
             # Create a closure for the optimized strategy that includes the optimization results
             opt_results = optimization_results[symbol]
-            optimized_strategy = lambda df: TradingStrategies.optimized_adaptive_strategy(df, opt_results)
+            optimized_strategy = lambda df: TradingStrategies.optimized_adaptive_strategy(
+                df, 
+                {
+                    'best_params': {k: v['best_parameters'] for k, v in opt_results['strategies'].items()},
+                    'strategy_weights': {k: v['weight'] for k, v in opt_results['strategies'].items()},
+                    'market_condition_params': opt_results['market_conditions']
+                }
+            )
             
             # Add optimized strategy to the base strategies
             base_strategies['Optimized'] = optimized_strategy

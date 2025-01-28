@@ -15,9 +15,7 @@ BACKTEST_CONFIG = {
     "end_date": "2024-12-31",
     
     # Trading pairs to test
-    "symbols": ["XRP/USD", "AAVE/USD",
-                 "ADA/USD", "ALGO/USD", "BTC/USD", "BCH/USD",
-                 "ETH/USD", "LTC/USD", "UNI/USD"],
+    "symbols": ["BTC/USD"],
     
     # Initial capital for each currency
     "initial_capital": 10000,
@@ -27,8 +25,11 @@ BACKTEST_CONFIG = {
     
     # Optimization configuration
     "optimization": {
-        "train_test_split": 0.7,  # 70% training, 30% testing
-        "min_training_days": 30,   # Minimum days required for training
+        "training_start": "2022-01-01",  # Start date for training period
+        "training_end": "2023-12-31",    # End date for training period
+        "testing_start": "2024-01-01",   # Start date for testing period
+        "testing_end": "2024-06-01",     # End date for testing period
+        "min_training_days": 30,         # Minimum days required for training
         
         # Parameter ranges for grid search
         "parameter_ranges": {
