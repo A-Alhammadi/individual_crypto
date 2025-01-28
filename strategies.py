@@ -139,25 +139,37 @@ class TradingStrategies:
     def optimize_strategy_parameters(df, symbol, start_date, end_date):
         """
         Optimizes strategy parameters with improved validation and selection criteria.
+        Fixes the issue where combined score was incorrectly used to compute final
+        strategy weights. Now we separate the 'combined score' for selecting the best
+        parameters from the actual Sharpe ratio used for weighting.
+
+        Args:
+            df (pd.DataFrame): Full dataset with at least 'close_price' and 'volume_crypto'.
+            symbol (str): Symbol being optimized, e.g. "LTC/USD"
+            start_date (str): Training period start date in "YYYY-MM-DD"
+            end_date (str): Training period end date in "YYYY-MM-DD"
+
+        Returns:
+            dict: A dictionary containing the best parameters and performance for each
+                strategy, along with final strategy weights and market condition data.
         """
         print(f"\nOptimizing strategy parameters for {symbol}")
         print(f"Training period: {start_date} to {end_date}")
         
-        # Filter data for training period
+        # 1. Filter data to the training period
         mask = (df.index >= start_date) & (df.index <= end_date)
         train_df = df[mask].copy()
-        
         if len(train_df) < BACKTEST_CONFIG['optimization']['min_training_days']:
             raise ValueError(f"Insufficient training data for {symbol}")
-        
-        # Calculate asset volatility
-        returns = train_df['close_price'].pct_change()
-        hours_per_year = 365 * 24  # Crypto trades 24/7
-        avg_volatility = returns.std() * np.sqrt(hours_per_year)  # Annualized volatility
+
+        # 2. Calculate asset volatility (annualized, assuming ~365*24 hours/year for crypto)
+        returns_series = train_df['close_price'].pct_change()
+        hours_per_year = 365 * 24
+        avg_volatility = returns_series.std() * np.sqrt(hours_per_year)
         print(f"Annual Volatility for {symbol}: {avg_volatility:.2f}")
-        
-        # Initialize results
-        safe_symbol = symbol.replace('/', '_').replace('\\', '_')  # Sanitize symbol for file paths
+
+        # Prepare the overall optimization results dictionary
+        safe_symbol = symbol.replace('/', '_').replace('\\', '_')
         optimization_results = {
             'optimization_id': f"opt_{safe_symbol}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             'symbol': symbol,
@@ -167,32 +179,31 @@ class TradingStrategies:
             'market_conditions': {},
             'timestamp': datetime.now().isoformat()
         }
-        
-        # Market conditions calculation
-        volatility = returns.rolling(20).std() * np.sqrt(252)
-        trend_strength = abs(train_df['close_price'].pct_change(20))
+
+        # 3. Market conditions calculation (identical to your original approach)
+        volatility_20 = returns_series.rolling(20).std() * np.sqrt(252)
+        trend_strength_20 = abs(train_df['close_price'].pct_change(20))
         volume_ma = train_df['volume_crypto'].rolling(20).mean()
         relative_volume = train_df['volume_crypto'] / volume_ma
-        
+
         conditions = {
-            'high_volatility': volatility > volatility.quantile(0.75),
-            'low_volatility': volatility < volatility.quantile(0.25),
-            'strong_trend': trend_strength > trend_strength.quantile(0.75),
-            'weak_trend': trend_strength < trend_strength.quantile(0.25),
+            'high_volatility': volatility_20 > volatility_20.quantile(0.75),
+            'low_volatility': volatility_20 < volatility_20.quantile(0.25),
+            'strong_trend': trend_strength_20 > trend_strength_20.quantile(0.75),
+            'weak_trend': trend_strength_20 < trend_strength_20.quantile(0.25),
             'high_volume': relative_volume > relative_volume.quantile(0.75),
             'low_volume': relative_volume < relative_volume.quantile(0.25)
         }
-        
-        # Parameter ranges
+
+        # 4. Parameter ranges from BACKTEST_CONFIG
         param_ranges = BACKTEST_CONFIG['optimization']['parameter_ranges'].copy()
-        
-        # Process each strategy
-        total_sharpe = 0
-        min_required_trades = 10  # Minimum number of trades required for validation
-        
-        for strategy_name, param_range in param_ranges.items():
+        total_sharpe = 0.0
+        min_required_trades = 10  # Skip parameter sets with fewer trades
+
+        # 5. Optimize each strategy
+        for strategy_name, strategy_params in param_ranges.items():
             print(f"\nOptimizing {strategy_name} strategy...")
-            
+
             strategy_results = {
                 'best_parameters': None,
                 'performance': {
@@ -205,119 +216,127 @@ class TradingStrategies:
                 },
                 'weight': 0.0
             }
-            
-            best_sharpe = -np.inf
-            best_performance = None
-            
-            # Generate parameter combinations
+
+            # We separate the combined score from the actual Sharpe
+            best_score_for_strategy = -np.inf
+            best_sharpe_for_strategy = -np.inf
+
+            # Generate all parameter combinations
             param_combinations = list(itertools.product(*[
-                param_range[param] if isinstance(param_range[param], (list, range)) 
-                else [param_range[param]] 
-                for param in param_range.keys()
+                strategy_params[p] if isinstance(strategy_params[p], (list, range))
+                else [strategy_params[p]]
+                for p in strategy_params.keys()
             ]))
-            
             print(f"Testing {len(param_combinations)} parameter combinations...")
-            
+
+            # 6. Evaluate each parameter combination
             for params in param_combinations:
-                param_dict = dict(zip(param_range.keys(), params))
-                
+                param_dict = dict(zip(strategy_params.keys(), params))
+
                 try:
-                    # Calculate indicators and signals
-                    df_with_indicators = TechnicalIndicators.add_all_indicators(
-                        train_df.copy(), 
+                    # Calculate indicators with these custom params
+                    df_with_inds = TechnicalIndicators.add_all_indicators(
+                        train_df.copy(),
                         custom_params={strategy_name: param_dict}
                     )
-                    
                     strategy_func = getattr(TradingStrategies, f"{strategy_name}_strategy")
-                    signals = strategy_func(df_with_indicators, custom_params=param_dict)
-                    
-                    # Count number of trades
+                    signals = strategy_func(df_with_inds, custom_params=param_dict)
+
+                    # Count trades
                     num_trades = ((signals.shift(1) != signals) & (signals != 0)).sum()
                     if num_trades < min_required_trades:
                         continue
-                    
-                    # Calculate returns and metrics
-                    returns = df_with_indicators['close_price'].pct_change() * signals.shift(1)
-                    returns = returns.fillna(0)
-                    
-                    if len(returns) > 0 and returns.std() != 0:
-                        # Calculate key metrics
-                        ann_factor = np.sqrt(365 * 24)  # Using 365*24 hours per year for crypto
-                        sharpe = ann_factor * (returns.mean() / returns.std())
-                        ann_return = returns.mean() * (365 * 24)  # Annualize hourly returns
-                        max_dd = (1 - (1 + returns).cumprod() / (1 + returns).cumprod().cummax()).max()
-                        win_rate = (returns[returns != 0] > 0).mean()
-                        
-                        # Score the parameter set
-                        score = sharpe * (1 - max_dd) * win_rate  # Combined scoring metric
-                                    
-                        if score > best_sharpe:
-                            best_sharpe = score
-                            strategy_results['best_parameters'] = param_dict
-                            strategy_results['performance'].update({
-                                'sharpe_ratio': float(sharpe),
-                                'returns': float(ann_return),
-                                'volatility': float(returns.std() * ann_factor),
-                                'max_drawdown': float(max_dd),
-                                'win_rate': float(win_rate),
-                                'num_trades': int(num_trades)
-                            })
-                            
-                            # Calculate market condition specific performance
-                            for condition_name, mask in conditions.items():
-                                condition_returns = returns[mask]
-                                if len(condition_returns) > 0 and condition_returns.std() != 0:
-                                    condition_sharpe = ann_factor * (condition_returns.mean() / condition_returns.std())
-                                    
-                                    if condition_name not in optimization_results['market_conditions']:
-                                        optimization_results['market_conditions'][condition_name] = {}
-                                    
-                                    optimization_results['market_conditions'][condition_name][strategy_name] = {
-                                        'parameters': param_dict.copy(),
-                                        'sharpe_ratio': float(condition_sharpe)
-                                    }
-                
+
+                    # Calculate returns from signals
+                    strategy_returns = df_with_inds['close_price'].pct_change() * signals.shift(1)
+                    strategy_returns = strategy_returns.fillna(0)
+
+                    # Skip if no variance in returns
+                    if len(strategy_returns) == 0 or strategy_returns.std() == 0:
+                        continue
+
+                    # Compute metrics (annualizing for hourly data)
+                    ann_factor = np.sqrt(365 * 24)
+                    sharpe_val = ann_factor * (strategy_returns.mean() / strategy_returns.std())
+                    ann_return = strategy_returns.mean() * (365 * 24)
+                    max_dd = (1 - (1 + strategy_returns).cumprod() /
+                            (1 + strategy_returns).cumprod().cummax()).max()
+                    win_rate = (strategy_returns[strategy_returns != 0] > 0).mean()
+
+                    # Our combined "score" for choosing the best parameter set
+                    score = sharpe_val * (1 - max_dd) * win_rate
+
+                    if score > best_score_for_strategy:
+                        best_score_for_strategy = score
+                        best_sharpe_for_strategy = sharpe_val  # store the real Sharpe
+                        strategy_results['best_parameters'] = param_dict
+                        strategy_results['performance'].update({
+                            'sharpe_ratio': float(sharpe_val),
+                            'returns': float(ann_return),
+                            'volatility': float(strategy_returns.std() * ann_factor),
+                            'max_drawdown': float(max_dd),
+                            'win_rate': float(win_rate),
+                            'num_trades': int(num_trades)
+                        })
+
+                        # Calculate market-condition-specific performance
+                        for condition_name, condition_mask in conditions.items():
+                            cond_returns = strategy_returns[condition_mask]
+                            if len(cond_returns) > 0 and cond_returns.std() != 0:
+                                cond_sharpe = ann_factor * (cond_returns.mean() / cond_returns.std())
+                                if condition_name not in optimization_results['market_conditions']:
+                                    optimization_results['market_conditions'][condition_name] = {}
+                                optimization_results['market_conditions'][condition_name][strategy_name] = {
+                                    'parameters': param_dict.copy(),
+                                    'sharpe_ratio': float(cond_sharpe)
+                                }
+
                 except Exception as e:
                     print(f"Error testing parameters {param_dict}: {str(e)}")
                     continue
-            
-            # Store strategy results
+
+            # 7. If we found valid parameters, add them to overall results
             if strategy_results['best_parameters'] is not None:
                 optimization_results['strategies'][strategy_name] = strategy_results
-                if best_sharpe > -np.inf:
-                    total_sharpe += max(0, best_sharpe)
-        
-        # Calculate strategy weights
+                # Add the actual Sharpe ratio for weighting (not the combined score)
+                if best_sharpe_for_strategy > 0:
+                    total_sharpe += best_sharpe_for_strategy
+
+        # 8. Weight each strategy by its actual Sharpe ratio
         if total_sharpe > 0:
-            for strategy_name in optimization_results['strategies']:
-                strategy_sharpe = optimization_results['strategies'][strategy_name]['performance']['sharpe_ratio']
-                if strategy_sharpe is not None:
-                    optimization_results['strategies'][strategy_name]['weight'] = max(0, strategy_sharpe) / total_sharpe
-        
-        # Save results to file
+            for strat_name, strat_data in optimization_results['strategies'].items():
+                actual_sharpe = strat_data['performance']['sharpe_ratio']
+                strat_data['weight'] = max(0, actual_sharpe) / total_sharpe
+        else:
+            # fallback if everything <= 0 Sharpe
+            for strat_name in optimization_results['strategies']:
+                optimization_results['strategies'][strat_name]['weight'] = 0.0
+
+        # 9. Save results to JSON file
         results_dir = BACKTEST_CONFIG['results_dir']
-        safe_symbol = symbol.replace('/', '_').replace('\\', '_')
         symbol_dir = os.path.join(results_dir, safe_symbol)
         os.makedirs(symbol_dir, exist_ok=True)
-        
-        results_file = os.path.join(symbol_dir, f'optimization_{optimization_results["optimization_id"]}.json')
-        
+        results_file = os.path.join(
+            symbol_dir,
+            f"optimization_{optimization_results['optimization_id']}.json"
+        )
+
         print("\nOptimization Results Summary:")
-        for strategy_name, strategy_data in optimization_results['strategies'].items():
-            print(f"\n{strategy_name}:")
-            print(f"  Best Parameters: {strategy_data['best_parameters']}")
-            print(f"  Weight: {strategy_data['weight']:.4f}")
-            print(f"  Performance:")
-            print(f"    Sharpe Ratio: {strategy_data['performance']['sharpe_ratio']:.4f}")
-            print(f"    Annual Return: {strategy_data['performance']['returns']*100:.2f}%")
-            print(f"    Max Drawdown: {strategy_data['performance']['max_drawdown']*100:.2f}%")
-            print(f"    Win Rate: {strategy_data['performance']['win_rate']*100:.2f}%")
-            print(f"    Number of Trades: {strategy_data['performance']['num_trades']}")
-        
-        # Save to JSON file
+        for strat_name, strat_data in optimization_results['strategies'].items():
+            print(f"\n{strat_name}:")
+            print(f"  Best Parameters: {strat_data['best_parameters']}")
+            print(f"  Weight: {strat_data['weight']:.4f}")
+            perf = strat_data['performance']
+            print("  Performance:")
+            print(f"    Sharpe Ratio: {perf['sharpe_ratio']:.4f}")
+            print(f"    Annual Return: {perf['returns']*100:.2f}%")
+            print(f"    Max Drawdown: {perf['max_drawdown']*100:.2f}%")
+            print(f"    Win Rate: {perf['win_rate']*100:.2f}%")
+            print(f"    Number of Trades: {perf['num_trades']}")
+
         with open(results_file, 'w') as f:
             json.dump(optimization_results, f, indent=2)
-        
+
         return optimization_results
 
     @staticmethod

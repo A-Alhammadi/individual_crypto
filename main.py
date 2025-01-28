@@ -73,9 +73,8 @@ def save_results_to_file(results_dict, symbol, output_dir, combined_results, opt
     with open(summary_file, 'w') as f:
         f.write("=== Backtest Configuration ===\n")
         f.write(f"Symbol: {symbol}\n")
-        f.write(f"Full Period: {BACKTEST_CONFIG['start_date']} to {BACKTEST_CONFIG['end_date']}\n")
-        f.write(f"Training Period: {BACKTEST_CONFIG['start_date']} to {train_end}\n")
-        f.write(f"Testing Period: {train_end} to {BACKTEST_CONFIG['end_date']}\n")
+        f.write(f"Training Period: {BACKTEST_CONFIG['optimization']['training_start']} to {BACKTEST_CONFIG['optimization']['training_end']}\n")
+        f.write(f"Testing Period: {BACKTEST_CONFIG['optimization']['testing_start']} to {BACKTEST_CONFIG['optimization']['testing_end']}\n")
         f.write(f"Initial Capital: ${BACKTEST_CONFIG['initial_capital']}\n\n")
         
         # Write optimization results if available
@@ -89,15 +88,14 @@ def save_results_to_file(results_dict, symbol, output_dir, combined_results, opt
                 f.write(f"Error reading optimization results: {str(e)}\n\n")
         
         f.write("\n=== Testing Period Performance ===\n")
-        f.write(f"Period: {train_end} to {BACKTEST_CONFIG['end_date']}\n\n")
-        
+        f.write(f"Period: {BACKTEST_CONFIG['optimization']['testing_start']} to {BACKTEST_CONFIG['optimization']['testing_end']}\n\n")
         # Calculate testing period metrics for each strategy
         testing_metrics = []
         
         # Calculate buy and hold metrics for testing period
         first_result = next(iter(results_dict.values()))
         df = first_result['portfolio']
-        test_mask = (df.index >= train_end) & (df.index <= BACKTEST_CONFIG['end_date'])
+        test_mask = (df.index >= BACKTEST_CONFIG['optimization']['testing_start']) & (df.index <= BACKTEST_CONFIG['optimization']['testing_end'])        
         test_df = df[test_mask]
         
         if len(test_df) > 0:
@@ -151,7 +149,10 @@ def save_results_to_file(results_dict, symbol, output_dir, combined_results, opt
                 # Trade analysis during testing period
                 if not opt_result['trades'].empty:
                     test_trades = opt_result['trades'][
-                        opt_result['trades']['date'].between(train_end, BACKTEST_CONFIG['end_date'])
+                        opt_result['trades']['date'].between(
+                            BACKTEST_CONFIG['optimization']['testing_start'], 
+                            BACKTEST_CONFIG['optimization']['testing_end']
+                        )
                     ]
                     
                     f.write("\n\nTrade Analysis:\n")
@@ -195,7 +196,7 @@ def save_test_period_results(results_dict, symbol, output_dir, train_end):
     df = first_result['portfolio']
     
     # Calculate buy and hold for test period
-    test_mask = (df.index >= train_end) & (df.index <= BACKTEST_CONFIG['end_date'])
+    test_mask = (df.index >= BACKTEST_CONFIG['optimization']['testing_start']) & (df.index <= BACKTEST_CONFIG['optimization']['testing_end'])
     test_df = df[test_mask]
     
     if len(test_df) > 0:
@@ -244,7 +245,7 @@ def save_test_period_results(results_dict, symbol, output_dir, train_end):
         # Write results to file
         with open(test_results_file, 'w') as f:
             f.write(f"=== Test Period Performance for {symbol} ===\n")
-            f.write(f"Test Period: {train_end} to {BACKTEST_CONFIG['end_date']}\n")
+            f.write(f"Test Period: {BACKTEST_CONFIG['optimization']['testing_start']} to {BACKTEST_CONFIG['optimization']['testing_end']}\n")
             f.write(f"Total Test Days: {test_days}\n\n")
             
             metrics_df = pd.DataFrame(test_metrics)
@@ -506,34 +507,47 @@ def main():
                 train_start,
                 train_end
             )
-            
+
             # Run backtests on testing period
             results = {}
             print("\nRunning backtests for each strategy:")
-            
+
             # Get all base strategies
             base_strategies = TradingStrategies.get_all_strategies()
-            
+
             # Remove the original adaptive and optimized strategies if they exist
-                        # Remove the original adaptive and optimized strategies if they exist
             base_strategies.pop('Adaptive', None)
             base_strategies.pop('Optimized', None)
-            
-            # Create a closure for the optimized strategy that includes the optimization results
+
+            # ----------------------------
+            # >>> KEY FIX FOR OPTION A <<<
+
+            # 1) Extract the optimization results (dictionary) for this symbol
             opt_results = optimization_results[symbol]
+
+            # 2) Build the dictionary that optimized_adaptive_strategy() expects
+            adaptive_input = {
+                'best_params': {
+                    s: data['best_parameters'] for s, data in opt_results['strategies'].items()
+                },
+                'strategy_weights': {
+                    s: data['weight'] for s, data in opt_results['strategies'].items()
+                },
+                'market_condition_params': opt_results['market_conditions']
+            }
+
+            # 3) Create a closure for the optimized strategy, passing adaptive_input
             optimized_strategy = lambda df: TradingStrategies.optimized_adaptive_strategy(
-                df, 
-                {
-                    'best_params': {k: v['best_parameters'] for k, v in opt_results['strategies'].items()},
-                    'strategy_weights': {k: v['weight'] for k, v in opt_results['strategies'].items()},
-                    'market_condition_params': opt_results['market_conditions']
-                }
+                df,
+                adaptive_input
             )
-            
-            # Add optimized strategy to the base strategies
+
+            # 4) Add the optimized strategy to the base strategies
             base_strategies['Optimized'] = optimized_strategy
-            
-            # Run each strategy
+
+            # ----------------------------
+
+            # Now backtest each strategy
             for strategy_name, strategy_func in base_strategies.items():
                 print(f"\nBacktesting {strategy_name} strategy...")
                 try:
