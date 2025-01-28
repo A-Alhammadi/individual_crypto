@@ -138,6 +138,7 @@ class TradingStrategies:
     def optimize_strategy_parameters(df, symbol, start_date, end_date):
         """
         Optimizes strategy parameters for different market conditions using training data.
+        Includes cross-validation and volatility-based parameter adjustment.
         """
         print(f"\nOptimizing strategy parameters for {symbol}")
         print(f"Training period: {start_date} to {end_date}")
@@ -145,6 +146,13 @@ class TradingStrategies:
         # Filter data for training period
         mask = (df.index >= start_date) & (df.index <= end_date)
         train_df = df[mask].copy()
+        
+        if len(train_df) < 100:  # Minimum required data points
+            raise ValueError(f"Insufficient training data for {symbol}")
+        
+        # Calculate volatility adjustment factor for this currency
+        avg_volatility = train_df['close_price'].pct_change().std() * np.sqrt(365)
+        print(f"Annual Volatility for {symbol}: {avg_volatility:.2f}")
         
         # Initialize results storage
         best_params = {}
@@ -174,8 +182,24 @@ class TradingStrategies:
             'low_volume': relative_volume < relative_volume.quantile(0.25)
         }
         
-        # Get parameter ranges from config
-        param_ranges = BACKTEST_CONFIG['optimization']['parameter_ranges']
+        # Get and adjust parameter ranges based on volatility
+        param_ranges = BACKTEST_CONFIG['optimization']['parameter_ranges'].copy()
+        
+        # Adjust parameters for high volatility currencies
+        if avg_volatility > 0.8:  # High volatility threshold
+            print("Adjusting parameters for high volatility")
+            for strategy in ['ema', 'macd', 'rsi', 'stochastic', 'volume_rsi']:
+                if strategy in param_ranges:
+                    for param in param_ranges[strategy]:
+                        if param in ['period', 'short', 'medium', 'long', 'fast', 'slow', 'signal', 'k_period', 'd_period']:
+                            param_ranges[strategy][param] = [
+                                int(p * 1.5) if isinstance(p, (int, np.integer)) else p 
+                                for p in param_ranges[strategy][param]
+                            ]
+        
+        # Cross-validation setup
+        cv_periods = 3
+        period_length = len(train_df) // cv_periods
         
         # Process each strategy
         for strategy_name, param_range in param_ranges.items():
@@ -198,45 +222,65 @@ class TradingStrategies:
                     print(f"Progress: {i + 1}/{total_combinations} combinations tested")
                     
                 param_dict = dict(zip(param_range.keys(), params))
-                try:
-                    # Recalculate indicators with current parameters
-                    df_with_indicators = TechnicalIndicators.add_all_indicators(
-                        train_df, 
-                        custom_params={strategy_name: param_dict}
-                    )
-                    
-                    # Get strategy signals
-                    strategy_func = getattr(TradingStrategies, f"{strategy_name}_strategy")
-                    signals = strategy_func(df_with_indicators, custom_params=param_dict)
-                    
-                    # Calculate returns and Sharpe ratio
-                    returns = df_with_indicators['close_price'].pct_change() * signals.shift(1)
-                    returns = returns.fillna(0)
-                    
-                    if len(returns) > 0 and returns.std() != 0:
-                        sharpe = np.sqrt(365 * 24) * returns.mean() / returns.std()
-                        
-                        if sharpe > best_sharpe:
-                            best_sharpe = sharpe
-                            best_params_overall = param_dict
-                            
-                            # Evaluate for each market condition
-                            for condition_name, mask in conditions.items():
-                                condition_returns = returns[mask]
-                                if len(condition_returns) > 0 and condition_returns.std() != 0:
-                                    condition_sharpe = np.sqrt(365 * 24) * condition_returns.mean() / condition_returns.std()
-                                    
-                                    # Update if first time seeing this condition or better than previous best
-                                    if (strategy_name not in market_condition_params[condition_name] or 
-                                        condition_sharpe > market_condition_params[condition_name][strategy_name]['sharpe']):
-                                        market_condition_params[condition_name][strategy_name] = {
-                                            'params': param_dict.copy(),
-                                            'sharpe': condition_sharpe
-                                        }
+                cv_sharpe_ratios = []
                 
-                except Exception as e:
-                    print(f"Error testing parameters {param_dict}: {str(e)}")
-                    continue
+                # Cross-validation
+                for cv in range(cv_periods):
+                    start_idx = cv * period_length
+                    end_idx = start_idx + period_length
+                    cv_df = train_df.iloc[start_idx:end_idx]
+                    
+                    try:
+                        # Calculate indicators and signals for this CV period
+                        df_with_indicators = TechnicalIndicators.add_all_indicators(
+                            cv_df, 
+                            custom_params={strategy_name: param_dict}
+                        )
+                        
+                        strategy_func = getattr(TradingStrategies, f"{strategy_name}_strategy")
+                        signals = strategy_func(df_with_indicators, custom_params=param_dict)
+                        
+                        returns = df_with_indicators['close_price'].pct_change() * signals.shift(1)
+                        returns = returns.fillna(0)
+                        
+                        if len(returns) > 0 and returns.std() != 0:
+                            cv_sharpe = np.sqrt(365 * 24) * returns.mean() / returns.std()
+                            cv_sharpe_ratios.append(cv_sharpe)
+                    
+                    except Exception as e:
+                        print(f"Error in CV period {cv} with params {param_dict}: {str(e)}")
+                        continue
+                
+                # Use mean Sharpe ratio across CV periods
+                if cv_sharpe_ratios:
+                    avg_sharpe = np.mean(cv_sharpe_ratios)
+                    sharpe_std = np.std(cv_sharpe_ratios)
+                    
+                    # Prefer parameters that are consistent across periods
+                    if avg_sharpe > best_sharpe and sharpe_std < 1.0:
+                        best_sharpe = avg_sharpe
+                        best_params_overall = param_dict
+                        
+                        # Evaluate market conditions using full training set
+                        df_with_indicators = TechnicalIndicators.add_all_indicators(
+                            train_df,
+                            custom_params={strategy_name: param_dict}
+                        )
+                        
+                        signals = strategy_func(df_with_indicators, custom_params=param_dict)
+                        returns = df_with_indicators['close_price'].pct_change() * signals.shift(1)
+                        
+                        for condition_name, mask in conditions.items():
+                            condition_returns = returns[mask]
+                            if len(condition_returns) > 0 and condition_returns.std() != 0:
+                                condition_sharpe = np.sqrt(365 * 24) * condition_returns.mean() / condition_returns.std()
+                                
+                                if (strategy_name not in market_condition_params[condition_name] or 
+                                    condition_sharpe > market_condition_params[condition_name][strategy_name]['sharpe']):
+                                    market_condition_params[condition_name][strategy_name] = {
+                                        'params': param_dict.copy(),
+                                        'sharpe': condition_sharpe
+                                    }
             
             best_params[strategy_name] = best_params_overall
             strategy_weights[strategy_name] = max(0, best_sharpe)
@@ -254,9 +298,17 @@ class TradingStrategies:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = os.path.join(symbol_dir, f'optimization_results_{timestamp}.txt')
         
+        print("\nFinal Optimized Parameters:")
+        for strategy_name, params in best_params.items():
+            print(f"{strategy_name}: {params}")
+        print("\nStrategy Weights:")
+        for strategy_name, weight in strategy_weights.items():
+            print(f"{strategy_name}: {weight:.4f}")
+        
         with open(results_file, 'w') as f:
             f.write(f"Strategy Optimization Results for {symbol}\n")
-            f.write(f"Training period: {start_date} to {end_date}\n\n")
+            f.write(f"Training period: {start_date} to {end_date}\n")
+            f.write(f"Volatility: {avg_volatility:.2f}\n\n")
             
             f.write("Best Parameters:\n")
             for strategy, params in best_params.items():
@@ -285,15 +337,16 @@ class TradingStrategies:
     def optimized_adaptive_strategy(df, optimization_results):
         """
         Uses optimized parameters and weights to generate trading signals.
-        Calculates indicators once for each parameter set.
         """
+        print("\nApplying optimized adaptive strategy...")
         signals = pd.Series(index=df.index, data=0.0)
         best_params = optimization_results['best_params']
         strategy_weights = optimization_results['strategy_weights']
         market_condition_params = optimization_results.get('market_condition_params', {})
         
-        # Calculate market conditions once for the entire dataset
-        print("\nCalculating market conditions...")
+        print("Strategy weights being used:", strategy_weights)
+        
+        # Calculate market conditions for the entire dataset
         volatility = df['close_price'].pct_change().rolling(20).std()
         trend_strength = ((df['ema_9'] - df['ema_50']).abs() / df['ema_50']).fillna(0)
         volume_ma = df['volume_crypto'].rolling(20).mean()
@@ -314,38 +367,44 @@ class TradingStrategies:
         # Add market condition specific parameters
         for condition, strategies in market_condition_params.items():
             for strategy_name, strategy_info in strategies.items():
-                key = (strategy_name, condition)
                 if 'params' in strategy_info:
+                    key = (strategy_name, condition)
                     indicator_dfs[key] = TechnicalIndicators.add_all_indicators(
                         df.copy(),
                         custom_params={strategy_name: strategy_info['params']}
                     )
         
         print("\nGenerating signals...")
-        # Generate signals for each bar
+        last_condition = None
+        last_params = {}
+        
         for i in range(len(df)):
             if i < 20:  # Skip first 20 bars to allow for indicator calculation
                 continue
-                
-            # Determine current market condition
-            vol_quantile = volatility.iloc[:i+1].rank(pct=True).iloc[-1]
-            trend_quantile = trend_strength.iloc[:i+1].rank(pct=True).iloc[-1]
-            volume_quantile = relative_volume.iloc[:i+1].rank(pct=True).iloc[-1]
             
-            if vol_quantile > 0.75:
+            # Determine current market condition
+            vol_rank = volatility.iloc[:i+1].rank(pct=True).iloc[-1]
+            trend_rank = trend_strength.iloc[:i+1].rank(pct=True).iloc[-1]
+            volume_rank = relative_volume.iloc[:i+1].rank(pct=True).iloc[-1]
+            
+            current_condition = None
+            if vol_rank > 0.75:
                 current_condition = 'high_volatility'
-            elif vol_quantile < 0.25:
+            elif vol_rank < 0.25:
                 current_condition = 'low_volatility'
-            elif trend_quantile > 0.75:
+            elif trend_rank > 0.75:
                 current_condition = 'strong_trend'
-            elif trend_quantile < 0.25:
+            elif trend_rank < 0.25:
                 current_condition = 'weak_trend'
-            elif volume_quantile > 0.75:
+            elif volume_rank > 0.75:
                 current_condition = 'high_volume'
-            elif volume_quantile < 0.25:
+            elif volume_rank < 0.25:
                 current_condition = 'low_volume'
-            else:
-                current_condition = None
+            
+            # Print when market condition changes
+            if current_condition != last_condition:
+                print(f"\nBar {i}: Market condition changed to {current_condition}")
+                last_condition = current_condition
             
             weighted_signal = 0
             for strategy_name, weight in strategy_weights.items():
@@ -354,19 +413,19 @@ class TradingStrategies:
                     if (current_condition and 
                         (strategy_name, current_condition) in indicator_dfs):
                         key = (strategy_name, current_condition)
+                        params = market_condition_params[current_condition][strategy_name]['params']
                     else:
                         key = (strategy_name, 'base')
+                        params = best_params[strategy_name]
+                    
+                    # Only print when parameters change
+                    if params != last_params.get(strategy_name):
+                        print(f"Strategy {strategy_name} using parameters: {params}")
+                        last_params[strategy_name] = params
                     
                     data_with_indicators = indicator_dfs[key].iloc[:i+1]
                     
-                    # Get strategy signal
                     strategy_func = getattr(TradingStrategies, f"{strategy_name}_strategy")
-                    if (current_condition and 
-                        strategy_name in market_condition_params.get(current_condition, {})):
-                        params = market_condition_params[current_condition][strategy_name]['params']
-                    else:
-                        params = best_params[strategy_name]
-                    
                     strategy_signal = strategy_func(
                         data_with_indicators,
                         custom_params=params
@@ -389,7 +448,6 @@ class TradingStrategies:
                 signals.iloc[i] *= 0.5  # Reduce position size in high-risk conditions
         
         return signals
-
     @classmethod
     def get_all_strategies(cls):
         """

@@ -1,0 +1,87 @@
+Strategy Optimization Results for BCH/USD
+Training period: 2022-11-01 to 2024-05-07
+Volatility: 0.18
+
+Best Parameters:
+ema: {'short': 11, 'medium': 21, 'long': 30}
+macd: None
+rsi: None
+stochastic: None
+vwap: {'period': 12, 'overbought': 1.03, 'oversold': 0.985}
+volume_rsi: {'period': 12, 'overbought': 65, 'oversold': 25}
+
+Strategy Weights:
+ema: 0.2104
+macd: 0.0000
+rsi: 0.0000
+stochastic: 0.0000
+vwap: 0.7798
+volume_rsi: 0.0098
+
+Market Condition-Specific Parameters:
+
+high_volatility:
+  ema:
+    Parameters: {'short': 7, 'medium': 15, 'long': 30}
+    Sharpe Ratio: 2.9551
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.03, 'oversold': 0.98}
+    Sharpe Ratio: 2.5519
+  volume_rsi:
+    Parameters: {'period': 12, 'overbought': 65, 'oversold': 25}
+    Sharpe Ratio: -1.7661
+
+low_volatility:
+  ema:
+    Parameters: {'short': 11, 'medium': 21, 'long': 30}
+    Sharpe Ratio: 0.4897
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.02, 'oversold': 0.985}
+    Sharpe Ratio: 4.3023
+  volume_rsi:
+    Parameters: {'period': 10, 'overbought': 75, 'oversold': 25}
+    Sharpe Ratio: 0.4200
+
+strong_trend:
+  ema:
+    Parameters: {'short': 7, 'medium': 27, 'long': 30}
+    Sharpe Ratio: 6.4607
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.03, 'oversold': 0.98}
+    Sharpe Ratio: 0.9337
+  volume_rsi:
+    Parameters: {'period': 12, 'overbought': 65, 'oversold': 25}
+    Sharpe Ratio: -2.0862
+
+weak_trend:
+  ema:
+    Parameters: {'short': 7, 'medium': 15, 'long': 30}
+    Sharpe Ratio: -6.4581
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.025, 'oversold': 0.99}
+    Sharpe Ratio: 3.6629
+  volume_rsi:
+    Parameters: {'period': 12, 'overbought': 65, 'oversold': 25}
+    Sharpe Ratio: 0.5428
+
+high_volume:
+  ema:
+    Parameters: {'short': 5, 'medium': 18, 'long': 30}
+    Sharpe Ratio: 8.7105
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.03, 'oversold': 0.98}
+    Sharpe Ratio: -1.9620
+  volume_rsi:
+    Parameters: {'period': 12, 'overbought': 65, 'oversold': 25}
+    Sharpe Ratio: -0.0645
+
+low_volume:
+  ema:
+    Parameters: {'short': 9, 'medium': 24, 'long': 30}
+    Sharpe Ratio: -5.9356
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.025, 'oversold': 0.99}
+    Sharpe Ratio: 8.0841
+  volume_rsi:
+    Parameters: {'period': 10, 'overbought': 75, 'oversold': 25}
+    Sharpe Ratio: 0.2872

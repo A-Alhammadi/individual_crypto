@@ -1,5 +1,6 @@
 Strategy Optimization Results for BTC/USD
 Training period: 2022-11-01 to 2024-05-07
+Volatility: 0.10
 
 Best Parameters:
 ema: {'short': 13, 'medium': 18, 'long': 30}
@@ -7,22 +8,22 @@ macd: {'fast': 12, 'slow': 20, 'signal': 8}
 rsi: {'period': 18, 'overbought': 75, 'oversold': 25}
 stochastic: {'k_period': 10, 'd_period': 3, 'overbought': 75, 'oversold': 20}
 vwap: {'period': 12, 'overbought': 1.025, 'oversold': 0.99}
-volume_rsi: {'period': 10, 'overbought': 75, 'oversold': 25}
+volume_rsi: {'period': 10, 'overbought': 75, 'oversold': 30}
 
 Strategy Weights:
-ema: 0.2006
-macd: 0.2068
-rsi: 0.0880
-stochastic: 0.0149
-vwap: 0.1350
-volume_rsi: 0.3548
+ema: 0.2038
+macd: 0.2130
+rsi: 0.0832
+stochastic: 0.0127
+vwap: 0.1397
+volume_rsi: 0.3477
 
 Market Condition-Specific Parameters:
 
 high_volatility:
   ema:
-    Parameters: {'short': 9, 'medium': 24, 'long': 30}
-    Sharpe Ratio: 2.8068
+    Parameters: {'short': 13, 'medium': 18, 'long': 30}
+    Sharpe Ratio: 2.4788
   macd:
     Parameters: {'fast': 8, 'slow': 20, 'signal': 7}
     Sharpe Ratio: 3.5699
@@ -42,27 +43,27 @@ high_volatility:
 low_volatility:
   ema:
     Parameters: {'short': 13, 'medium': 18, 'long': 30}
-    Sharpe Ratio: -1.2136
+    Sharpe Ratio: -1.2138
   macd:
     Parameters: {'fast': 8, 'slow': 26, 'signal': 10}
-    Sharpe Ratio: -2.7814
+    Sharpe Ratio: -2.7819
   rsi:
-    Parameters: {'period': 10, 'overbought': 70, 'oversold': 30}
-    Sharpe Ratio: 3.3628
+    Parameters: {'period': 16, 'overbought': 75, 'oversold': 25}
+    Sharpe Ratio: 2.8533
   stochastic:
     Parameters: {'k_period': 10, 'd_period': 3, 'overbought': 75, 'oversold': 20}
-    Sharpe Ratio: 4.5610
+    Sharpe Ratio: 4.5617
   vwap:
     Parameters: {'period': 12, 'overbought': 1.01, 'oversold': 0.97}
-    Sharpe Ratio: 2.9476
+    Sharpe Ratio: 2.9481
   volume_rsi:
     Parameters: {'period': 10, 'overbought': 65, 'oversold': 30}
-    Sharpe Ratio: 3.8765
+    Sharpe Ratio: 3.8771
 
 strong_trend:
   ema:
-    Parameters: {'short': 9, 'medium': 24, 'long': 30}
-    Sharpe Ratio: 7.7924
+    Parameters: {'short': 13, 'medium': 18, 'long': 30}
+    Sharpe Ratio: 7.7636
   macd:
     Parameters: {'fast': 8, 'slow': 20, 'signal': 7}
     Sharpe Ratio: 1.7822
@@ -82,22 +83,22 @@ strong_trend:
 weak_trend:
   ema:
     Parameters: {'short': 5, 'medium': 15, 'long': 30}
-    Sharpe Ratio: -7.3492
+    Sharpe Ratio: -7.3504
   macd:
     Parameters: {'fast': 12, 'slow': 20, 'signal': 8}
-    Sharpe Ratio: -1.7166
+    Sharpe Ratio: -1.7168
   rsi:
     Parameters: {'period': 16, 'overbought': 75, 'oversold': 25}
-    Sharpe Ratio: 6.8129
+    Sharpe Ratio: 6.8139
   stochastic:
     Parameters: {'k_period': 10, 'd_period': 3, 'overbought': 75, 'oversold': 20}
-    Sharpe Ratio: 3.4555
+    Sharpe Ratio: 3.4560
   vwap:
-    Parameters: {'period': 12, 'overbought': 1.02, 'oversold': 0.97}
-    Sharpe Ratio: 1.9497
+    Parameters: {'period': 12, 'overbought': 1.02, 'oversold': 0.99}
+    Sharpe Ratio: 1.6002
   volume_rsi:
     Parameters: {'period': 10, 'overbought': 65, 'oversold': 20}
-    Sharpe Ratio: 2.1655
+    Sharpe Ratio: 2.1658
 
 high_volume:
   ema:
@@ -113,16 +114,16 @@ high_volume:
     Parameters: {'k_period': 10, 'd_period': 3, 'overbought': 75, 'oversold': 15}
     Sharpe Ratio: -7.3325
   vwap:
-    Parameters: {'period': 12, 'overbought': 1.02, 'oversold': 0.97}
-    Sharpe Ratio: -2.2546
+    Parameters: {'period': 12, 'overbought': 1.01, 'oversold': 0.97}
+    Sharpe Ratio: -4.6083
   volume_rsi:
     Parameters: {'period': 10, 'overbought': 75, 'oversold': 25}
     Sharpe Ratio: 4.2498
 
 low_volume:
   ema:
-    Parameters: {'short': 9, 'medium': 21, 'long': 30}
-    Sharpe Ratio: -3.0460
+    Parameters: {'short': 13, 'medium': 18, 'long': 30}
+    Sharpe Ratio: -3.1010
   macd:
     Parameters: {'fast': 12, 'slow': 20, 'signal': 8}
     Sharpe Ratio: -3.8325

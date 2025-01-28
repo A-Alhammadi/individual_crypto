@@ -1,0 +1,176 @@
+=== Backtest Configuration ===
+Symbol: AAVE/USD
+Full Period: 2022-11-01 to 2024-12-31
+Training Period: 2022-11-01 to 2024-05-07
+Testing Period: 2024-05-07 to 2024-12-31
+Initial Capital: $10000
+
+=== Optimization Results (Training Period) ===
+Strategy Optimization Results for AAVE/USD
+Training period: 2022-11-01 to 2024-05-07
+Volatility: 0.22
+
+Best Parameters:
+ema: {'short': 11, 'medium': 24, 'long': 30}
+macd: {'fast': 8, 'slow': 20, 'signal': 7}
+rsi: {'period': 18, 'overbought': 70, 'oversold': 30}
+stochastic: {'k_period': 12, 'd_period': 3, 'overbought': 75, 'oversold': 15}
+vwap: {'period': 12, 'overbought': 1.025, 'oversold': 0.975}
+volume_rsi: {'period': 10, 'overbought': 65, 'oversold': 20}
+
+Strategy Weights:
+ema: 0.0000
+macd: 0.0000
+rsi: 0.2766
+stochastic: 0.3069
+vwap: 0.2844
+volume_rsi: 0.1321
+
+Market Condition-Specific Parameters:
+
+high_volatility:
+  ema:
+    Parameters: {'short': 9, 'medium': 21, 'long': 30}
+    Sharpe Ratio: -3.0280
+  macd:
+    Parameters: {'fast': 8, 'slow': 20, 'signal': 7}
+    Sharpe Ratio: -6.5199
+  rsi:
+    Parameters: {'period': 10, 'overbought': 70, 'oversold': 20}
+    Sharpe Ratio: 5.9697
+  stochastic:
+    Parameters: {'k_period': 10, 'd_period': 3, 'overbought': 75, 'oversold': 15}
+    Sharpe Ratio: 6.0361
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.01, 'oversold': 0.975}
+    Sharpe Ratio: 6.6989
+  volume_rsi:
+    Parameters: {'period': 10, 'overbought': 65, 'oversold': 20}
+    Sharpe Ratio: 3.6768
+
+low_volatility:
+  ema:
+    Parameters: {'short': 11, 'medium': 24, 'long': 30}
+    Sharpe Ratio: 0.3187
+  macd:
+    Parameters: {'fast': 8, 'slow': 20, 'signal': 7}
+    Sharpe Ratio: 0.9597
+  rsi:
+    Parameters: {'period': 12, 'overbought': 70, 'oversold': 25}
+    Sharpe Ratio: 1.7269
+  stochastic:
+    Parameters: {'k_period': 12, 'd_period': 3, 'overbought': 75, 'oversold': 15}
+    Sharpe Ratio: 1.5783
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.02, 'oversold': 0.975}
+    Sharpe Ratio: -1.8410
+  volume_rsi:
+    Parameters: {'period': 10, 'overbought': 65, 'oversold': 20}
+    Sharpe Ratio: 0.3986
+
+strong_trend:
+  ema:
+    Parameters: {'short': 7, 'medium': 15, 'long': 30}
+    Sharpe Ratio: 5.1624
+  macd:
+    Parameters: {'fast': 8, 'slow': 20, 'signal': 7}
+    Sharpe Ratio: -2.6728
+  rsi:
+    Parameters: {'period': 10, 'overbought': 75, 'oversold': 25}
+    Sharpe Ratio: 1.3590
+  stochastic:
+    Parameters: {'k_period': 10, 'd_period': 3, 'overbought': 75, 'oversold': 15}
+    Sharpe Ratio: 1.0110
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.02, 'oversold': 0.98}
+    Sharpe Ratio: 3.5147
+  volume_rsi:
+    Parameters: {'period': 10, 'overbought': 65, 'oversold': 20}
+    Sharpe Ratio: 1.5465
+
+weak_trend:
+  ema:
+    Parameters: {'short': 5, 'medium': 18, 'long': 30}
+    Sharpe Ratio: -11.2775
+  macd:
+    Parameters: {'fast': 8, 'slow': 20, 'signal': 7}
+    Sharpe Ratio: -3.8116
+  rsi:
+    Parameters: {'period': 12, 'overbought': 70, 'oversold': 25}
+    Sharpe Ratio: 7.5566
+  stochastic:
+    Parameters: {'k_period': 12, 'd_period': 3, 'overbought': 75, 'oversold': 15}
+    Sharpe Ratio: 6.8163
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.01, 'oversold': 0.98}
+    Sharpe Ratio: 5.1961
+  volume_rsi:
+    Parameters: {'period': 10, 'overbought': 65, 'oversold': 20}
+    Sharpe Ratio: 3.0291
+
+high_volume:
+  ema:
+    Parameters: {'short': 7, 'medium': 15, 'long': 30}
+    Sharpe Ratio: 0.4849
+  macd:
+    Parameters: {'fast': 8, 'slow': 20, 'signal': 7}
+    Sharpe Ratio: -2.6707
+  rsi:
+    Parameters: {'period': 12, 'overbought': 70, 'oversold': 25}
+    Sharpe Ratio: 2.8915
+  stochastic:
+    Parameters: {'k_period': 12, 'd_period': 3, 'overbought': 75, 'oversold': 15}
+    Sharpe Ratio: 2.6136
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.01, 'oversold': 0.97}
+    Sharpe Ratio: 2.0149
+  volume_rsi:
+    Parameters: {'period': 10, 'overbought': 65, 'oversold': 20}
+    Sharpe Ratio: 3.2007
+
+low_volume:
+
+
+=== Testing Period Performance ===
+Period: 2024-05-07 to 2024-12-31
+
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|    | Total Return   | Annual Return   |   Sharpe Ratio | Max Drawdown   |   Number of Trades | Win Rate   | Trading Fees   | Strategy     |
++====+================+=================+================+================+====================+============+================+==============+
+|  0 | 35.61%         | 54.61%          |           0.21 | -31.17%        |                252 | 99.21%     | $0.00          | EMA          |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  1 | 12.11%         | 18.58%          |           0.13 | -42.74%        |                446 | 99.55%     | $0.00          | MACD         |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  2 | 48.51%         | 74.40%          |           0.25 | -33.08%        |                174 | 96.55%     | $0.00          | RSI          |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  3 | 107.38%        | 164.67%         |            0.4 | -28.22%        |                232 | 99.14%     | $0.00          | Stochastic   |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  4 | 84.80%         | 130.05%         |           0.37 | -27.57%        |                270 | 98.52%     | $0.00          | Volume RSI   |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  5 | 212.56%        | 325.99%         |           0.58 | -25.27%        |                137 | 100.00%    | $0.00          | VWAP         |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  6 | 213.11%        | 326.83%         |            0.6 | -23.17%        |                170 | 97.65%     | $0.00          | Optimized    |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  7 | 261.23%        | 400.62%         |            nan | nan            |                  1 | nan        | $0.00          | Buy and Hold |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+
+=== Optimized Strategy Testing Period Details ===
+
+Monthly Returns:
+date_time
+2024-05-31         NaN
+2024-06-30   -0.053339
+2024-07-31    0.309837
+2024-08-31    0.060638
+2024-09-30    0.279599
+2024-10-31   -0.147692
+2024-11-30    0.272054
+2024-12-31    0.480125
+Freq: ME
+
+Trade Analysis:
+Total Trades: 170
+Average Trade Duration: 32.5 hours
+Average Trade Size: $24085.53
+Largest Winning Trade: $46612.13
+Largest Losing Trade: $15513.02

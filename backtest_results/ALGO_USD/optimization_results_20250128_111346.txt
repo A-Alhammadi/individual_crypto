@@ -1,0 +1,123 @@
+Strategy Optimization Results for ALGO/USD
+Training period: 2022-11-01 to 2024-05-07
+Volatility: 0.19
+
+Best Parameters:
+ema: {'short': 13, 'medium': 27, 'long': 30}
+macd: {'fast': 14, 'slow': 20, 'signal': 11}
+rsi: {'period': 12, 'overbought': 75, 'oversold': 20}
+stochastic: {'k_period': 12, 'd_period': 3, 'overbought': 80, 'oversold': 20}
+vwap: {'period': 12, 'overbought': 1.025, 'oversold': 0.985}
+volume_rsi: {'period': 12, 'overbought': 65, 'oversold': 25}
+
+Strategy Weights:
+ema: 0.0422
+macd: 0.0000
+rsi: 0.3080
+stochastic: 0.3372
+vwap: 0.1608
+volume_rsi: 0.1518
+
+Market Condition-Specific Parameters:
+
+high_volatility:
+  ema:
+    Parameters: {'short': 13, 'medium': 27, 'long': 30}
+    Sharpe Ratio: -0.1962
+  macd:
+    Parameters: {'fast': 8, 'slow': 20, 'signal': 8}
+    Sharpe Ratio: -3.3048
+  rsi:
+    Parameters: {'period': 12, 'overbought': 75, 'oversold': 20}
+    Sharpe Ratio: 5.8827
+  stochastic:
+    Parameters: {'k_period': 12, 'd_period': 3, 'overbought': 80, 'oversold': 20}
+    Sharpe Ratio: 6.2127
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.01, 'oversold': 0.975}
+    Sharpe Ratio: 3.3690
+  volume_rsi:
+    Parameters: {'period': 12, 'overbought': 65, 'oversold': 20}
+    Sharpe Ratio: 4.1312
+
+low_volatility:
+  ema:
+    Parameters: {'short': 13, 'medium': 27, 'long': 30}
+    Sharpe Ratio: 1.3325
+  macd:
+    Parameters: {'fast': 8, 'slow': 20, 'signal': 8}
+    Sharpe Ratio: 0.7348
+  rsi:
+    Parameters: {'period': 10, 'overbought': 65, 'oversold': 30}
+    Sharpe Ratio: 1.0446
+  stochastic:
+    Parameters: {'k_period': 10, 'd_period': 3, 'overbought': 75, 'oversold': 20}
+    Sharpe Ratio: 3.2893
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.025, 'oversold': 0.975}
+    Sharpe Ratio: 2.3432
+  volume_rsi:
+    Parameters: {'period': 12, 'overbought': 65, 'oversold': 20}
+    Sharpe Ratio: 1.0651
+
+strong_trend:
+  ema:
+    Parameters: {'short': 13, 'medium': 27, 'long': 30}
+    Sharpe Ratio: 5.6942
+  macd:
+    Parameters: {'fast': 14, 'slow': 20, 'signal': 11}
+    Sharpe Ratio: -0.9088
+  rsi:
+    Parameters: {'period': 12, 'overbought': 75, 'oversold': 20}
+    Sharpe Ratio: 1.5336
+  stochastic:
+    Parameters: {'k_period': 12, 'd_period': 3, 'overbought': 80, 'oversold': 20}
+    Sharpe Ratio: 2.5219
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.025, 'oversold': 0.975}
+    Sharpe Ratio: 1.3221
+  volume_rsi:
+    Parameters: {'period': 12, 'overbought': 65, 'oversold': 20}
+    Sharpe Ratio: 1.9684
+
+weak_trend:
+  ema:
+    Parameters: {'short': 13, 'medium': 27, 'long': 30}
+    Sharpe Ratio: -12.2032
+  macd:
+    Parameters: {'fast': 8, 'slow': 20, 'signal': 7}
+    Sharpe Ratio: -1.4096
+  rsi:
+    Parameters: {'period': 10, 'overbought': 65, 'oversold': 30}
+    Sharpe Ratio: 4.8863
+  stochastic:
+    Parameters: {'k_period': 10, 'd_period': 3, 'overbought': 75, 'oversold': 15}
+    Sharpe Ratio: 7.2964
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.015, 'oversold': 0.985}
+    Sharpe Ratio: 5.1003
+  volume_rsi:
+    Parameters: {'period': 10, 'overbought': 70, 'oversold': 20}
+    Sharpe Ratio: 0.8490
+
+high_volume:
+  ema:
+    Parameters: {'short': 13, 'medium': 27, 'long': 30}
+    Sharpe Ratio: 6.2091
+  macd:
+    Parameters: {'fast': 12, 'slow': 26, 'signal': 11}
+    Sharpe Ratio: 5.0784
+  rsi:
+    Parameters: {'period': 12, 'overbought': 75, 'oversold': 20}
+    Sharpe Ratio: -2.6564
+  stochastic:
+    Parameters: {'k_period': 10, 'd_period': 3, 'overbought': 80, 'oversold': 15}
+    Sharpe Ratio: -3.2616
+  vwap:
+    Parameters: {'period': 12, 'overbought': 1.025, 'oversold': 0.975}
+    Sharpe Ratio: -2.7709
+  volume_rsi:
+    Parameters: {'period': 12, 'overbought': 65, 'oversold': 25}
+    Sharpe Ratio: 2.4860
+
+low_volume:

@@ -15,7 +15,9 @@ BACKTEST_CONFIG = {
     "end_date": "2024-12-31",
     
     # Trading pairs to test
-    "symbols": ["BTC/USD"],
+    "symbols": ["XRP/USD", "AAVE/USD",
+                 "ADA/USD", "ALGO/USD", "BTC/USD", "BCH/USD",
+                 "ETH/USD", "LTC/USD", "UNI/USD"],
     
     # Initial capital for each currency
     "initial_capital": 10000,
