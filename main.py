@@ -7,9 +7,12 @@ from indicators import TechnicalIndicators
 from strategies import TradingStrategies
 from backtester import Backtester
 from config import BACKTEST_CONFIG
+import importlib
+import optimized_strat
+importlib.reload(optimized_strat)
+from optimized_strat import OptimizedStrategy  # Ensure fresh import
 
-# Import the advanced optimization logic
-from optimized_strategy import optimize_strategy_parameters, OptimizedStrategy
+from optimized_strat import optimize_strategy_parameters, OptimizedStrategy
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -647,7 +650,9 @@ def main():
             base_strategies = TradingStrategies.get_all_strategies()
             print(f"Base strategies: {list(base_strategies.keys())}")
 
-            # Create the optimized strategy with better logging
+            # ----------------------------------------------------------------
+            # >>> THIS BLOCK ADDS AND INITIALIZES THE “OPTIMIZED” STRATEGY <<<
+            # ----------------------------------------------------------------
             try:
                 print("\nInitializing Optimized strategy...")
                 opt_data = optimization_results[symbol]
@@ -658,13 +663,20 @@ def main():
                 for strat_name, weight in adv_strat.base_weights.items():
                     print(f"  {strat_name}: {weight:.4f}")
                 
-                base_strategies["Optimized"] = lambda df: adv_strat.run(df)
+                # Add "Optimized" to the dictionary of strategies
+                dynamic_signals = adv_strat.run_dynamic(data_with_indicators)
+
+                def dynamic_signal_func(df):
+                    return dynamic_signals.reindex(df.index).fillna(0)
+
+                base_strategies["Optimized"] = dynamic_signal_func
                 print("✓ Added Optimized strategy to base_strategies")
                 print(f"Final strategies: {list(base_strategies.keys())}")
             except Exception as e:
                 print(f"Error setting up Optimized strategy: {str(e)}")
                 raise
-
+            # ----------------------------------------------------------------
+            
             # Backtest each strategy
             results = {}
             for strategy_name, strategy_func in base_strategies.items():
@@ -702,7 +714,7 @@ def main():
                 print("\nGenerating performance plots...")
                 # Full-range plot
                 plot_results(results, symbol, output_dir)
-                # NEW: test-only plot
+                # Test-only plot
                 plot_test_period_results(results, symbol, output_dir, test_start, test_end)
                 print("✓ Performance plots saved (including testing-only)")
 

@@ -1,0 +1,467 @@
+=== Backtest Configuration ===
+Symbol: BTC/USD
+Training Period: 2022-01-01 to 2023-12-31
+Testing Period: 2024-01-01 to 2024-06-01
+Initial Capital: $10000
+
+=== Optimization Results (Training Period) ===
+{
+  "optimization_id": "opt_BTC_USD_20250206_165341",
+  "symbol": "BTC/USD",
+  "training_period": {
+    "start": "2022-01-01",
+    "end": "2023-12-31"
+  },
+  "volatility": 0.43984264326127165,
+  "strategies": {
+    "ema": {
+      "best_parameters": {
+        "short": 7,
+        "medium": 21,
+        "long": 30
+      },
+      "performance": {
+        "sharpe_ratio": 1.3605446971499597,
+        "returns": 0.598907628023771,
+        "volatility": 0.44019695146976795,
+        "max_drawdown": 0.2980514064633256,
+        "win_rate": 0.48274836406900656,
+        "num_trades": 550
+      },
+      "weight": 0.23745507422060305
+    },
+    "macd": {
+      "best_parameters": {
+        "fast": 12,
+        "slow": 23,
+        "signal": 8
+      },
+      "performance": {
+        "sharpe_ratio": 1.402842947564539,
+        "returns": 0.6175230695195857,
+        "volatility": 0.44019401501191635,
+        "max_drawdown": 0.23848310630584757,
+        "win_rate": 0.4801705334126512,
+        "num_trades": 821
+      },
+      "weight": 0.2448373632498686
+    },
+    "rsi": {
+      "best_parameters": {
+        "period": 18,
+        "overbought": 75,
+        "oversold": 25
+      },
+      "performance": {
+        "sharpe_ratio": 0.2609290815674332,
+        "returns": 0.05339016263346044,
+        "volatility": 0.2046156078607227,
+        "max_drawdown": 0.1255893975582999,
+        "win_rate": 0.5528205128205128,
+        "num_trades": 293
+      },
+      "weight": 0.04553980075751933
+    },
+    "stochastic": {
+      "best_parameters": {
+        "k_period": 10,
+        "d_period": 3,
+        "overbought": 75,
+        "oversold": 20
+      },
+      "performance": {
+        "sharpe_ratio": -0.16517107504321443,
+        "returns": -0.04175069771622768,
+        "volatility": 0.2527724524727121,
+        "max_drawdown": 0.24962232922167504,
+        "win_rate": 0.571563088512241,
+        "num_trades": 801
+      },
+      "weight": 0.0
+    },
+    "vwap": {
+      "best_parameters": {
+        "period": 12,
+        "overbought": 1.03,
+        "oversold": 0.99
+      },
+      "performance": {
+        "sharpe_ratio": 0.9243666256376631,
+        "returns": 0.17327082295620747,
+        "volatility": 0.18744815979988316,
+        "max_drawdown": 0.14668166594269172,
+        "win_rate": 0.611214953271028,
+        "num_trades": 220
+      },
+      "weight": 0.16132916923467072
+    },
+    "volume_rsi": {
+      "best_parameters": {
+        "period": 10,
+        "overbought": 75,
+        "oversold": 30
+      },
+      "performance": {
+        "sharpe_ratio": 1.781009734722858,
+        "returns": 0.23562343427791668,
+        "volatility": 0.13229766782525865,
+        "max_drawdown": 0.07739226893196238,
+        "win_rate": 0.5346534653465347,
+        "num_trades": 619
+      },
+      "weight": 0.31083859253733837
+    }
+  },
+  "market_conditions": {
+    "high_volatility": {
+      "ema": {
+        "parameters": {
+          "short": 5,
+          "medium": 18,
+          "long": 30
+        },
+        "sharpe_ratio": 2.76705294747681
+      },
+      "macd": {
+        "parameters": {
+          "fast": 8,
+          "slow": 20,
+          "signal": 7
+        },
+        "sharpe_ratio": 3.8534518101888326
+      },
+      "rsi": {
+        "parameters": {
+          "period": 10,
+          "overbought": 65,
+          "oversold": 20
+        },
+        "sharpe_ratio": -1.2447711551835705
+      },
+      "stochastic": {
+        "parameters": {
+          "k_period": 10,
+          "d_period": 3,
+          "overbought": 75,
+          "oversold": 15
+        },
+        "sharpe_ratio": -1.6971755859182422
+      },
+      "vwap": {
+        "parameters": {
+          "period": 12,
+          "overbought": 1.03,
+          "oversold": 0.99
+        },
+        "sharpe_ratio": 0.8674933101264918
+      },
+      "volume_rsi": {
+        "parameters": {
+          "period": 10,
+          "overbought": 75,
+          "oversold": 30
+        },
+        "sharpe_ratio": 3.0061836233399704
+      }
+    },
+    "low_volatility": {
+      "ema": {
+        "parameters": {
+          "short": 7,
+          "medium": 21,
+          "long": 30
+        },
+        "sharpe_ratio": -4.910172688812678
+      },
+      "macd": {
+        "parameters": {
+          "fast": 12,
+          "slow": 23,
+          "signal": 8
+        },
+        "sharpe_ratio": -2.219181670079816
+      },
+      "rsi": {
+        "parameters": {
+          "period": 10,
+          "overbought": 70,
+          "oversold": 30
+        },
+        "sharpe_ratio": 5.572761628371092
+      },
+      "stochastic": {
+        "parameters": {
+          "k_period": 10,
+          "d_period": 3,
+          "overbought": 75,
+          "oversold": 20
+        },
+        "sharpe_ratio": 4.967899109316482
+      },
+      "vwap": {
+        "parameters": {
+          "period": 12,
+          "overbought": 1.01,
+          "oversold": 0.97
+        },
+        "sharpe_ratio": 3.1186557497117184
+      },
+      "volume_rsi": {
+        "parameters": {
+          "period": 10,
+          "overbought": 65,
+          "oversold": 30
+        },
+        "sharpe_ratio": 3.688873422033452
+      }
+    },
+    "strong_trend": {
+      "ema": {
+        "parameters": {
+          "short": 7,
+          "medium": 21,
+          "long": 30
+        },
+        "sharpe_ratio": 19.5127511132975
+      },
+      "macd": {
+        "parameters": {
+          "fast": 8,
+          "slow": 26,
+          "signal": 10
+        },
+        "sharpe_ratio": 9.788249424318265
+      },
+      "rsi": {
+        "parameters": {
+          "period": 18,
+          "overbought": 75,
+          "oversold": 25
+        },
+        "sharpe_ratio": -4.327727003164441
+      },
+      "stochastic": {
+        "parameters": {
+          "k_period": 10,
+          "d_period": 3,
+          "overbought": 75,
+          "oversold": 15
+        },
+        "sharpe_ratio": -7.737996561106567
+      },
+      "vwap": {
+        "parameters": {
+          "period": 12,
+          "overbought": 1.02,
+          "oversold": 0.99
+        },
+        "sharpe_ratio": -3.2217539678190827
+      },
+      "volume_rsi": {
+        "parameters": {
+          "period": 10,
+          "overbought": 75,
+          "oversold": 30
+        },
+        "sharpe_ratio": 2.1370997989719664
+      }
+    },
+    "weak_trend": {
+      "ema": {
+        "parameters": {
+          "short": 7,
+          "medium": 21,
+          "long": 30
+        },
+        "sharpe_ratio": -24.40402923269796
+      },
+      "macd": {
+        "parameters": {
+          "fast": 8,
+          "slow": 20,
+          "signal": 7
+        },
+        "sharpe_ratio": -9.83167735857117
+      },
+      "rsi": {
+        "parameters": {
+          "period": 10,
+          "overbought": 65,
+          "oversold": 30
+        },
+        "sharpe_ratio": 13.571721907007984
+      },
+      "stochastic": {
+        "parameters": {
+          "k_period": 10,
+          "d_period": 3,
+          "overbought": 75,
+          "oversold": 15
+        },
+        "sharpe_ratio": 8.630827972203672
+      },
+      "vwap": {
+        "parameters": {
+          "period": 12,
+          "overbought": 1.01,
+          "oversold": 0.99
+        },
+        "sharpe_ratio": 7.412590909020145
+      },
+      "volume_rsi": {
+        "parameters": {
+          "period": 10,
+          "overbought": 70,
+          "oversold": 25
+        },
+        "sharpe_ratio": 3.6489603307349117
+      }
+    },
+    "high_volume": {
+      "ema": {
+        "parameters": {
+          "short": 5,
+          "medium": 15,
+          "long": 30
+        },
+        "sharpe_ratio": 9.711769268119717
+      },
+      "macd": {
+        "parameters": {
+          "fast": 8,
+          "slow": 26,
+          "signal": 10
+        },
+        "sharpe_ratio": 10.127155746837646
+      },
+      "rsi": {
+        "parameters": {
+          "period": 18,
+          "overbought": 75,
+          "oversold": 25
+        },
+        "sharpe_ratio": -3.0097138557140988
+      },
+      "stochastic": {
+        "parameters": {
+          "k_period": 10,
+          "d_period": 3,
+          "overbought": 75,
+          "oversold": 15
+        },
+        "sharpe_ratio": -7.596265600952085
+      },
+      "vwap": {
+        "parameters": {
+          "period": 12,
+          "overbought": 1.03,
+          "oversold": 0.99
+        },
+        "sharpe_ratio": -4.176169732510107
+      },
+      "volume_rsi": {
+        "parameters": {
+          "period": 10,
+          "overbought": 75,
+          "oversold": 25
+        },
+        "sharpe_ratio": 3.641620329531171
+      }
+    },
+    "low_volume": {
+      "ema": {
+        "parameters": {
+          "short": 7,
+          "medium": 18,
+          "long": 30
+        },
+        "sharpe_ratio": -2.199421529452964
+      },
+      "macd": {
+        "parameters": {
+          "fast": 12,
+          "slow": 23,
+          "signal": 8
+        },
+        "sharpe_ratio": -3.302084703024531
+      },
+      "rsi": {
+        "parameters": {
+          "period": 10,
+          "overbought": 65,
+          "oversold": 30
+        },
+        "sharpe_ratio": 6.696326917500703
+      },
+      "stochastic": {
+        "parameters": {
+          "k_period": 10,
+          "d_period": 3,
+          "overbought": 75,
+          "oversold": 20
+        },
+        "sharpe_ratio": 8.90651141882239
+      },
+      "vwap": {
+        "parameters": {
+          "period": 12,
+          "overbought": 1.03,
+          "oversold": 0.99
+        },
+        "sharpe_ratio": 5.5030686616498965
+      },
+      "volume_rsi": {
+        "parameters": {
+          "period": 10,
+          "overbought": 75,
+          "oversold": 20
+        },
+        "sharpe_ratio": 2.882246825337004
+      }
+    }
+  },
+  "timestamp": "2025-02-06T16:53:41.615153",
+  "results_file": "backtest_results\\BTC_USD\\optimization_opt_BTC_USD_20250206_165341.json"
+}
+
+=== Testing Period Performance ===
+Period: 2024-01-01 to 2024-06-01
+
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|    | Total Return   | Annual Return   |   Sharpe Ratio | Max Drawdown   |   Number of Trades | Win Rate   | Trading Fees   | Strategy     |
++====+================+=================+================+================+====================+============+================+==============+
+|  0 | 26.76%         | 64.25%          |           0.35 | -13.41%        |                173 | 100.00%    | $0.00          | EMA          |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  1 | 28.02%         | 67.29%          |           0.38 | -18.50%        |                282 | 100.00%    | $0.00          | MACD         |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  2 | 49.86%         | 119.74%         |           0.58 | -11.33%        |                 88 | 97.73%     | $0.00          | RSI          |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  3 | 27.52%         | 66.08%          |            0.4 | -11.99%        |                111 | 100.00%    | $0.00          | Stochastic   |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  4 | 43.78%         | 105.12%         |           0.55 | -17.97%        |                 85 | 100.00%    | $0.00          | Volume RSI   |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  5 | 17.17%         | 41.24%          |           0.25 | -16.26%        |                 34 | 94.12%     | $0.00          | VWAP         |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  6 | 63.13%         | 151.60%         |           0.55 | -18.76%        |                 26 | 92.31%     | $0.00          | Optimized    |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+|  7 | 59.12%         | 141.97%         |            nan | nan            |                  1 | nan        | $0.00          | Buy and Hold |
++----+----------------+-----------------+----------------+----------------+--------------------+------------+----------------+--------------+
+
+=== Optimized Strategy Testing Period Details ===
+
+Monthly Returns:
+date_time
+2024-01-31         NaN
+2024-02-29    0.410423
+2024-03-31    0.158904
+2024-04-30   -0.108955
+2024-05-31    0.107153
+2024-06-30    0.001436
+Freq: ME
+
+Trade Analysis:
+Total Trades: 26
+Average Trade Duration: 136.2 hours
+Average Trade Size: $27148.05
+Largest Winning Trade: $33435.21
+Largest Losing Trade: $19533.62
